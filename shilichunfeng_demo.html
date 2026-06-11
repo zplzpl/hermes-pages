@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>十里春风 · 康养小镇</title>
+<style>
+:root {
+  --gold: #C8956C; --gold-light: #E8D5C4;
+  --green: #3E7B5C; --green-light: #D4EDE0;
+  --bg: #FBF7F3; --card: #FFFFFF;
+  --text: #29221E; --text-secondary: #8B8078;
+  --border: #EDE8E3;
+  --shadow-sm: 0 2px 8px rgba(41,34,30,0.04);
+  --shadow-md: 0 4px 20px rgba(41,34,30,0.06);
+  --shadow-lg: 0 8px 40px rgba(41,34,30,0.08);
+  --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+  --font: -apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:#E8E3DD; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+.phone { width:390px; height:844px; background:var(--bg); border-radius:40px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3); position:relative; }
+.app { width:100%; height:100%; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+.pages { flex:1; position:relative; overflow:hidden; }
+.page { position:absolute; inset:0; display:flex; flex-direction:column; opacity:0; transform:translateY(8px); pointer-events:none; transition:opacity 0.3s,transform 0.3s; }
+.page.active { opacity:1; transform:translateY(0); pointer-events:auto; }
+.scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:20px; }
+.scroll-area::-webkit-scrollbar { display:none; }
+.page-header { padding:16px 20px 12px; background:linear-gradient(180deg,#fff 0%,var(--bg) 100%); position:sticky; top:0; z-index:50; }
+.page-header h1 { font-size:24px; font-weight:700; letter-spacing:-0.5px; color:var(--text); }
+.page-header .subtitle { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+
+/* Nav */
+.nav { display:flex; background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); border-top:1px solid var(--border); padding:6px 0 env(safe-area-inset-bottom,6px); }
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; cursor:pointer; border:none; background:none; position:relative; transition:color 0.2s; }
+.nav-item svg { width:24px; height:24px; }
+.nav-item span { font-size:10px; font-weight:500; }
+.nav-item.active { color:var(--gold); }
+.nav-item.active::after { content:''; position:absolute; bottom:0; width:16px; height:2px; background:var(--gold); border-radius:1px; }
+.nav-item:not(.active) { color:var(--text-secondary); }
+
+/* Hero */
+.hero { margin:0 16px; height:200px; border-radius:var(--radius-lg); overflow:hidden; position:relative; background:linear-gradient(135deg,#3E7B5C 0%,#2D5A42 50%,#1A3A2A 100%); }
+.hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.5)); }
+.hero-tag { position:absolute; top:16px; left:16px; z-index:2; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); padding:4px 12px; border-radius:10px; font-size:11px; color:#fff; }
+.hero h2 { position:absolute; bottom:40px; left:16px; z-index:2; font-size:22px; font-weight:700; color:#fff; letter-spacing:1px; }
+.hero p { position:absolute; bottom:16px; left:16px; z-index:2; font-size:12px; color:rgba(255,255,255,0.8); }
+
+/* Quick Grid */
+.quick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px; }
+.quick-item { display:flex; flex-direction:column; align-items:center; gap:8px; padding:14px 8px; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow-sm); cursor:pointer; transition:transform 0.15s; }
+.quick-item:active { transform:scale(0.95); }
+.quick-icon { width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.quick-icon.wellness { background:#D4EDE0; }
+.quick-icon.sport { background:#FDE8D0; }
+.quick-icon.food { background:#FCE4D4; }
+.quick-icon.culture { background:#E0D4F5; }
+.quick-item span { font-size:11px; color:var(--text); font-weight:500; }
+
+/* Section */
+.section { padding:0 16px; margin-bottom:20px; }
+.section-title { font-size:17px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.section-title::before { content:''; width:3px; height:16px; background:var(--gold); border-radius:2px; }
+
+/* Activity Cards */
+.act-scroll { display:flex; gap:12px; overflow-x:auto; padding:0 16px; scroll-snap-type:x mandatory; }
+.act-scroll::-webkit-scrollbar { display:none; }
+.act-card { min-width:260px; background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); cursor:pointer; scroll-snap-align:start; }
+.act-card:active { transform:scale(0.97); }
+.act-img { height:120px; background:linear-gradient(135deg,#C8956C,#8B6B4A); position:relative; }
+.act-img.green { background:linear-gradient(135deg,#3E7B5C,#2A5A3F); }
+.act-img.blue { background:linear-gradient(135deg,#4A7FB5,#2D5A8A); }
+.act-tag { position:absolute; top:8px; left:8px; padding:3px 10px; border-radius:8px; font-size:10px; color:#fff; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); }
+.act-body { padding:12px; }
+.act-body h4 { font-size:14px; font-weight:600; margin-bottom:4px; }
+.act-body .act-info { font-size:11px; color:var(--text-secondary); }
+.act-body .act-info span { margin-right:12px; }
+
+/* Filter tabs */
+.filter-tabs { display:flex; gap:8px; padding:0 16px 16px; flex-wrap:wrap; }
+.filter-tab { padding:6px 16px; border-radius:20px; border:1px solid var(--border); font-size:12px; background:var(--card); color:var(--text-secondary); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.filter-tab.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+
+/* Space Cards */
+.space-list { padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
+.space-card { background:var(--card); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); cursor:pointer; transition:transform 0.15s; }
+.space-card:active { transform:scale(0.97); }
+.sp-img-wrap { position:relative; width:100%; height:180px; overflow:hidden; }
+.sp-img { width:100%; height:100%; object-fit:cover; display:block; background:linear-gradient(135deg,#EDE8E3,#D4CFC8); }
+.sp-status { position:absolute; top:12px; right:12px; padding:4px 12px; border-radius:10px; font-size:11px; font-weight:500; color:#fff; background:rgba(62,123,92,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; gap:4px; }
+.sp-status.full { background:rgba(200,149,108,0.85); }
+.sp-label { position:absolute; bottom:12px; left:12px; padding:4px 10px; border-radius:8px; font-size:10px; font-weight:500; color:#fff; background:rgba(0,0,0,0.45); backdrop-filter:blur(4px); }
+.sp-body { padding:14px 16px; }
+.sp-name { font-size:16px; font-weight:600; margin-bottom:6px; }
+.sp-desc { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+
+/* Community cards */
+.comm-card { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--card); border-radius:var(--radius); margin:0 16px 10px; box-shadow:var(--shadow-sm); cursor:pointer; }
+.comm-card:active { transform:scale(0.98); }
+.comm-avatar { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.comm-info { flex:1; min-width:0; }
+.comm-info h4 { font-size:15px; font-weight:600; }
+.comm-info p { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+.comm-btn { padding:6px 14px; border-radius:16px; font-size:12px; font-weight:500; background:var(--green); color:#fff; border:none; cursor:pointer; }
+.comm-btn.joined { background:var(--border); color:var(--text-secondary); }
+
+/* Bottom Sheet */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; display:none; align-items:flex-end; }
+.overlay.show { display:flex; }
+.sheet { width:100%; max-width:390px; max-height:85vh; background:var(--card); border-radius:24px 24px 0 0; overflow-y:auto; padding:0 0 20px; animation:slideUp 0.35s ease; }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.sheet-handle { width:36px; height:4px; background:#D4CFC8; border-radius:2px; margin:12px auto; }
+.sheet h3 { font-size:18px; font-weight:700; padding:0 20px 12px; }
+.sheet .form-group { padding:0 20px; margin-bottom:16px; }
+.sheet .form-group label { display:block; font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+.sheet .form-group input, .sheet .form-group select { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:12px; font-size:14px; font-family:var(--font); background:var(--bg); }
+.sheet .time-slots { display:flex; gap:8px; flex-wrap:wrap; padding:0 20px; margin-bottom:16px; }
+.sheet .time-slot { padding:8px 14px; border-radius:10px; border:1px solid var(--border); font-size:13px; cursor:pointer; background:var(--bg); }
+.sheet .time-slot.selected { background:var(--green); color:#fff; border-color:var(--green); }
+.sheet .submit-btn { margin:0 20px; width:calc(100% - 40px); padding:14px; background:var(--gold); color:#fff; border:none; border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; }
+.sheet .submit-btn:active { opacity:0.8; }
+
+/* Profile */
+.profile-header { text-align:center; padding:24px 20px; }
+.profile-avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#C8956C,#E8D5C4); margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:28px; }
+.profile-stats { display:flex; justify-content:center; gap:24px; margin-top:8px; }
+.stat-item { text-align:center; }
+.stat-num { font-size:18px; font-weight:700; color:var(--text); }
+.stat-label { font-size:11px; color:var(--text-secondary); }
+.menu-list { margin:0 16px; }
+.menu-item { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--card); margin-bottom:8px; border-radius:var(--radius); cursor:pointer; }
+.menu-item:active { background:var(--bg); }
+.menu-item .mi-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.menu-item .mi-text { flex:1; font-size:14px; font-weight:500; }
+.menu-item .mi-arrow { color:var(--text-secondary); font-size:14px; }
+
+/* Toast */
+.toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.78); color:#fff; padding:10px 24px; border-radius:24px; font-size:13px; z-index:200; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+.toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="app" id="app">
+
+<div class="pages">
+<!-- ====== HOME ====== -->
+<div class="page active" id="page-home">
+<div class="scroll-area">
+<div class="page-header"><h1>十里春风</h1><div class="subtitle">海口 · 云龙湖畔康养小镇</div></div>
+<div class="hero">
+<div class="hero-tag">🌿 康养小镇</div>
+<h2>让50+个空间<br>被人看见·预定·传播</h2>
+<p>7大场景 · 7种预约模式 · 3种权益模型</p>
+</div>
+<div class="quick-grid">
+<div class="quick-item" onclick="switchTab('space')"><div class="quick-icon wellness">🧘</div><span>康养疗愈</span></div>
+<div class="quick-item" onclick="switchTab('space')"><div class="quick-icon sport">🏋️</div><span>文娱运动</span></div>
+<div class="quick-item" onclick="switchTab('space')"><div class="quick-icon food">🍽️</div><span>餐饮社交</span></div>
+<div class="quick-item" onclick="switchTab('space')"><div class="quick-icon culture">🏕️</div><span>户外营地</span></div>
+</div>
+<div class="section"><div class="section-title">近期活动</div></div>
+<div class="act-scroll">
+<div class="act-card" onclick="switchTab('activity')"><div class="act-img green"></div><div class="act-body"><h4>湖边八段锦 · 廖老师带练</h4><div class="act-info"><span>📅 每周一 7:00</span><span>📍 功法区</span></div></div></div>
+<div class="act-card" onclick="switchTab('activity')"><div class="act-img"></div><div class="act-body"><h4>中医义诊 · 健管中心2F</h4><div class="act-info"><span>📅 每周三 14:00</span><span>💰 积分预约</span></div></div></div>
+<div class="act-card" onclick="switchTab('activity')"><div class="act-img blue"></div><div class="act-body"><h4>春风市集 · 邻里摆摊日</h4><div class="act-info"><span>📅 每周五 15:00</span><span>📍 春天里市集</span></div></div></div>
+</div>
+<div class="section" style="margin-top:20px;"><div class="section-title">热门社群</div></div>
+<div class="comm-card" onclick="switchTab('community')"><div class="comm-avatar" style="background:#D4EDE0;">🧘</div><div class="comm-info"><h4>春风瑜伽社</h4><p>86人 · 廖老师主理 · 每周3场晨练</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card" onclick="switchTab('community')"><div class="comm-avatar" style="background:#FDE8D0;">🏓</div><div class="comm-info"><h4>云龙乒乓会</h4><p>52人 · 老周主理 · 周三友谊赛</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card" onclick="switchTab('community')"><div class="comm-avatar" style="background:#E0D4F5;">📚</div><div class="comm-info"><h4>云龙书院读书会</h4><p>41人 · 海大张教授主理</p></div><button class="comm-btn joined">已加入</button></div>
+</div></div>
+
+<!-- ====== SPACE ====== -->
+<div class="page" id="page-space">
+<div class="page-header"><h1>空间预定</h1><div class="subtitle">7大场景 · 50+空间 · 一键预约</div></div>
+<div class="filter-tabs">
+<button class="filter-tab active" onclick="filterSpaces(this,'all')">全部</button>
+<button class="filter-tab" onclick="filterSpaces(this,'wellness')">康养疗愈</button>
+<button class="filter-tab" onclick="filterSpaces(this,'sport')">文娱运动</button>
+<button class="filter-tab" onclick="filterSpaces(this,'food')">餐饮社交</button>
+<button class="filter-tab" onclick="filterSpaces(this,'outdoor')">户外营地</button>
+</div>
+<div class="scroll-area"><div class="space-list" id="spaceList">
+<div class="space-card" data-cat="wellness" onclick="openBooking('健康管理中心','4层2415㎡·问诊/中医/冥想/讲座')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#D4EDE0,#A8D5BA);"></div><span class="sp-status">可预约</span><span class="sp-label">康养疗愈</span></div>
+<div class="sp-body"><div class="sp-name">健康管理中心</div><div class="sp-desc">1F健康评估 · 2F中医理疗 · 3F冥想课程 · 4F康养论坛（247人）</div></div></div>
+<div class="space-card" data-cat="sport" onclick="openBooking('瑜伽舞蹈室','100㎡·镜面墙·防滑地板')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FDE8D0,#F5D0A0);"></div><span class="sp-status">可预约</span><span class="sp-label">文娱运动</span></div>
+<div class="sp-body"><div class="sp-name">瑜伽舞蹈室</div><div class="sp-desc">100㎡专业空间 · 镜面墙+防滑地板+健身教具 · 廖老师晨练课</div></div></div>
+<div class="space-card" data-cat="culture" onclick="openBooking('云龙书院','省图分馆·藏书4000册')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#E0D4F5,#C8B8E8);"></div><span class="sp-status">可预约</span><span class="sp-label">文化艺术</span></div>
+<div class="sp-body"><div class="sp-name">云龙书院（省图分馆）</div><div class="sp-desc">藏书4000册 · 阅读分享·国学讲堂·茶艺·读书会·文化沙龙</div></div></div>
+<div class="space-card" data-cat="food" onclick="openBooking('春风食集','252人就餐·生鲜零售·文化展示')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FCE4D4,#F5C8B0);"></div><span class="sp-status">可预约</span><span class="sp-label">餐饮社交</span></div>
+<div class="sp-body"><div class="sp-name">春风食集</div><div class="sp-desc">252人用餐 · 邻里聚餐·美食分享·厨艺交流 · 线上预定减少备餐浪费</div></div></div>
+<div class="space-card" data-cat="sport" onclick="openBooking('乒乓球馆','174㎡·6张标准台·自动发球机')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FDE8D0,#E8D0A0);"></div><span class="sp-status">可预约</span><span class="sp-label">文娱运动</span></div>
+<div class="sp-body"><div class="sp-name">乒乓球馆</div><div class="sp-desc">174㎡ · 6张标准球台+自动发球机+休息区 · 周三友谊赛</div></div></div>
+<div class="space-card" data-cat="outdoor" onclick="openBooking('云龙湖·水上运动','3000亩湖区·桨板/皮划艇/滑水')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#B8D8F0,#8ABCD8);"></div><span class="sp-status">可预约</span><span class="sp-label">户外营地</span></div>
+<div class="sp-body"><div class="sp-name">云龙湖 · 水上运动</div><div class="sp-desc">3000亩湖区 · 桨板·皮划艇·滑水训练·垂钓 · 天气标签预约</div></div></div>
+<div class="space-card" data-cat="outdoor" onclick="openBooking('春风营地','帐篷营地·太空舱宿集·BBQ')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#C8D8B8,#A0C090);"></div><span class="sp-status">可预约</span><span class="sp-label">户外营地</span></div>
+<div class="sp-body"><div class="sp-name">春风营地</div><div class="sp-desc">帐篷营地+太空舱宿集 · 户外露营·湖畔野餐·BBQ·团建</div></div></div>
+<div class="space-card" data-cat="food" onclick="openBooking('湖畔咖啡馆','临湖休闲社交·下午茶')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FCE4D4,#F0D0B8);"></div><span class="sp-status">可预约</span><span class="sp-label">餐饮社交</span></div>
+<div class="sp-body"><div class="sp-name">湖畔咖啡馆</div><div class="sp-desc">临湖休闲社交场景 · 下午茶·小型茶话会·主题交流</div></div></div>
+<div class="space-card" data-cat="sport" onclick="openBooking('书画室','130㎡·书画案台·作品展示墙')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#E0D4F5,#D0C0E8);"></div><span class="sp-status">可预约</span><span class="sp-label">文娱运动</span></div>
+<div class="sp-body"><div class="sp-name">书画室</div><div class="sp-desc">130㎡ · 书画案台+文房储物+作品展示墙 · 笔会活动</div></div></div>
+<div class="space-card" data-cat="outdoor" onclick="openBooking('幸福农庄','农耕体验·采摘·亲子劳作')">
+<div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#C8D8B8,#A8C898);"></div><span class="sp-status">可预约</span><span class="sp-label">户外营地</span></div>
+<div class="sp-body"><div class="sp-name">幸福农庄</div><div class="sp-desc">农耕体验 · 采摘活动·亲子劳作·昆虫乐园·阳光草坪</div></div></div>
+</div></div></div>
+
+<!-- ====== ACTIVITY ====== -->
+<div class="page" id="page-activity">
+<div class="page-header"><h1>活动汇</h1><div class="subtitle">每天都有理由来十里春风</div></div>
+<div class="filter-tabs">
+<button class="filter-tab active">全部</button><button class="filter-tab">康养</button><button class="filter-tab">运动</button><button class="filter-tab">文化</button><button class="filter-tab">户外</button>
+</div>
+<div class="scroll-area"><div class="space-list">
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#D4EDE0,#A8D5BA);"></div><span class="sp-status">可报名</span><span class="sp-label">🕐 每周一 7:00</span></div><div class="sp-body"><div class="sp-name">湖边八段锦 · 廖老师带练</div><div class="sp-desc">室外带练功法专区 · 适合全龄 · 无需基础 · 来了就能跟</div></div></div>
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FDE8D0,#F5D0A0);"></div><span class="sp-status">可报名</span><span class="sp-label">🕐 每周三 7:00</span></div><div class="sp-body"><div class="sp-name">瑜伽晨练 · 瑜伽舞蹈室</div><div class="sp-desc">廖老师主理 · 100㎡专业空间 · 限15人 · 积分预约</div></div></div>
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#C8956C,#8B6B4A);"></div><span class="sp-status">可报名</span><span class="sp-label">🕐 每周三 14:00</span></div><div class="sp-body"><div class="sp-name">中医义诊 · 健管中心2F</div><div class="sp-desc">海南省中医院退休医师坐诊 · 限10人 · 积分预约</div></div></div>
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#4A7FB5,#2D5A8A);"></div><span class="sp-status">可报名</span><span class="sp-label">🕐 每周一 10:00</span></div><div class="sp-body"><div class="sp-name">云龙书院读书会</div><div class="sp-desc">海大张教授主理 · 省图分馆 · 本期：《苏轼与海南》</div></div></div>
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#FDE8D0,#E8D0A0);"></div><span class="sp-status">可报名</span><span class="sp-label">🕐 每周三 15:00</span></div><div class="sp-body"><div class="sp-name">乒乓球友谊赛</div><div class="sp-desc">6张标准台 · 老周主理 · 双打配对 · 自由参赛</div></div></div>
+<div class="space-card" style="cursor:default;"><div class="sp-img-wrap"><div class="sp-img" style="background:linear-gradient(135deg,#C8D8B8,#A0C090);"></div><span class="sp-status">即将开始</span><span class="sp-label">🕐 本周六 全天</span></div><div class="sp-body"><div class="sp-name">云龙湖水上嘉年华</div><div class="sp-desc">桨板·皮划艇·水上高尔夫·亲子水上乐园 · 开发商主办</div></div></div>
+</div></div></div>
+
+<!-- ====== COMMUNITY ====== -->
+<div class="page" id="page-community">
+<div class="page-header"><h1>社群圈</h1><div class="subtitle">找到你的同好圈层</div></div>
+<div class="scroll-area">
+<div class="comm-card"><div class="comm-avatar" style="background:#D4EDE0;">🧘</div><div class="comm-info"><h4>春风瑜伽社</h4><p>86人 · 廖老师主理 · 每周3场晨练</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card"><div class="comm-avatar" style="background:#FDE8D0;">🏓</div><div class="comm-info"><h4>云龙乒乓会</h4><p>52人 · 老周主理 · 周三友谊赛</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card"><div class="comm-avatar" style="background:#E0D4F5;">📚</div><div class="comm-info"><h4>云龙书院读书会</h4><p>41人 · 海大张教授主理</p></div><button class="comm-btn joined">已加入</button></div>
+<div class="comm-card"><div class="comm-avatar" style="background:#FCE4D4;">🌿</div><div class="comm-info"><h4>中医养生交流</h4><p>38人 · 健管中心 · 每周义诊</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card"><div class="comm-avatar" style="background:#C8D8B8;">🏕️</div><div class="comm-info"><h4>春风户外营</h4><p>29人 · 露营·徒步·水上运动</p></div><button class="comm-btn">加入</button></div>
+<div class="comm-card"><div class="comm-avatar" style="background:#F5D0A0;">🎨</div><div class="comm-info"><h4>书画笔会</h4><p>24人 · 书画室 · 每周三</p></div><button class="comm-btn joined">已加入</button></div>
+</div></div>
+
+<!-- ====== PROFILE ====== -->
+<div class="page" id="page-profile">
+<div class="scroll-area">
+<div class="profile-header"><div class="profile-avatar">👤</div><h2 style="font-size:18px;margin:4px 0;">李叔</h2><p style="font-size:12px;color:var(--text-secondary);">云会员 V3 · 叠拼别墅业主</p>
+<div class="profile-stats"><div class="stat-item"><div class="stat-num">8</div><div class="stat-label">到访次数</div></div><div class="stat-item"><div class="stat-num">320</div><div class="stat-label">积分余额</div></div><div class="stat-item"><div class="stat-num">3</div><div class="stat-label">加入社群</div></div></div></div>
+<div class="menu-list">
+<div class="menu-item"><div class="mi-icon" style="background:#D4EDE0;">📋</div><div class="mi-text">我的预约</div><div class="mi-arrow">›</div></div>
+<div class="menu-item"><div class="mi-icon" style="background:#FDE8D0;">⭐</div><div class="mi-text">我的积分</div><div class="mi-arrow">›</div></div>
+<div class="menu-item"><div class="mi-icon" style="background:#E0D4F5;">🏠</div><div class="mi-text">我的房产</div><div class="mi-arrow">›</div></div>
+<div class="menu-item"><div class="mi-icon" style="background:#C8D8B8;">🎁</div><div class="mi-text">积分兑换</div><div class="mi-arrow">›</div></div>
+<div class="menu-item"><div class="mi-icon" style="background:#D4EDE0;">👥</div><div class="mi-text">邀请好友 · 老带新奖励</div><div class="mi-arrow">›</div></div>
+</div></div></div>
+</div>
+
+<!-- Nav -->
+<div class="nav">
+<button class="nav-item active" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>首页</span></button>
+<button class="nav-item" onclick="switchTab('space')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>空间</span></button>
+<button class="nav-item" onclick="switchTab('activity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>活动</span></button>
+<button class="nav-item" onclick="switchTab('community')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>社群</span></button>
+<button class="nav-item" onclick="switchTab('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>我的</span></button>
+</div>
+</div>
+
+<!-- Booking Sheet -->
+<div class="overlay" id="bookingOverlay"><div class="sheet">
+<div class="sheet-handle"></div>
+<h3 id="bookingTitle">预约空间</h3>
+<p style="padding:0 20px 12px;font-size:13px;color:var(--text-secondary);" id="bookingDesc"></p>
+<div class="form-group"><label>选择日期</label><input type="date" id="bookingDate"></div>
+<div class="form-group"><label>选择时段</label></div>
+<div class="time-slots" id="timeSlots">
+<div class="time-slot" onclick="selectTime(this)">09:00-10:00</div>
+<div class="time-slot" onclick="selectTime(this)">10:00-11:00</div>
+<div class="time-slot" onclick="selectTime(this)">14:00-15:00</div>
+<div class="time-slot" onclick="selectTime(this)">15:00-16:00</div>
+<div class="time-slot" onclick="selectTime(this)">16:00-17:00</div>
+</div>
+<button class="submit-btn" onclick="confirmBooking()">确认预约</button>
+</div></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((b,i)=>{
+    b.classList.toggle('active',['home','space','activity','community','profile'][i]===name);
+  });
+  document.querySelectorAll('.page .scroll-area').forEach(s=>s.scrollTop=0);
+}
+
+// Space filter
+function filterSpaces(btn, cat) {
+  document.querySelectorAll('#page-space .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#spaceList .space-card').forEach(card=>{
+    card.style.display = (cat==='all' || card.dataset.cat===cat) ? '' : 'none';
+  });
+}
+
+// Booking
+function openBooking(name, desc) {
+  document.getElementById('bookingTitle').textContent = name;
+  document.getElementById('bookingDesc').textContent = desc;
+  document.getElementById('bookingOverlay').classList.add('show');
+  document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
+  document.getElementById('bookingDate').value = '';
+}
+function selectTime(el) {
+  document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function confirmBooking() {
+  var d = document.getElementById('bookingDate').value;
+  var t = document.querySelector('.time-slot.selected');
+  if(!d || !t) { showToast('请选择日期和时段'); return; }
+  document.getElementById('bookingOverlay').classList.remove('show');
+  showToast('✅ 预约成功！' + d + ' ' + t.textContent);
+}
+document.getElementById('bookingOverlay').addEventListener('click',function(e){
+  if(e.target===this) this.classList.remove('show');
+});
+
+// Toast
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+// Init date
+document.getElementById('bookingDate').valueAsDate = new Date();
+</script>
+</div>
+</body>
+</html>
