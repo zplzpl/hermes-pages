@@ -39,12 +39,22 @@ body { font-family:var(--font); background:#E8E3DD; display:flex; justify-conten
 .nav-item.active::after { content:''; position:absolute; bottom:0; width:16px; height:2px; background:var(--gold); border-radius:1px; }
 .nav-item:not(.active) { color:var(--text-secondary); }
 
-/* Hero */
-.hero { margin:0 16px; height:200px; border-radius:var(--radius-lg); overflow:hidden; position:relative; background:linear-gradient(135deg,#3E7B5C 0%,#2D5A42 50%,#1A3A2A 100%); }
-.hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.5)); }
+/* Hero / Banner Carousel */
+.hero { margin:0 16px; height:420px; border-radius:var(--radius-lg); overflow:hidden; position:relative; }
+.hero-slides { width:100%; height:100%; position:relative; }
+.hero-slide { position:absolute; inset:0; opacity:0; transition:opacity 0.5s ease; }
+.hero-slide.active { opacity:1; }
+.hero-slide img { width:100%; height:100%; object-fit:cover; display:block; }
+.hero-slide::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.55)); }
 .hero-tag { position:absolute; top:16px; left:16px; z-index:2; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); padding:4px 12px; border-radius:10px; font-size:11px; color:#fff; }
 .hero h2 { position:absolute; bottom:40px; left:16px; z-index:2; font-size:22px; font-weight:700; color:#fff; letter-spacing:1px; }
 .hero p { position:absolute; bottom:16px; left:16px; z-index:2; font-size:12px; color:rgba(255,255,255,0.8); }
+.hero-dots { position:absolute; bottom:12px; right:16px; z-index:3; display:flex; gap:6px; }
+.hero-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.4); transition:all 0.3s; cursor:pointer; }
+.hero-dot.active { background:#fff; width:18px; border-radius:3px; }
+.hero-arrows { position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:100%; display:flex; justify-content:space-between; padding:0 8px; pointer-events:none; }
+.hero-arrow { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.25); backdrop-filter:blur(4px); border:none; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; pointer-events:auto; transition:background 0.2s; }
+.hero-arrow:active { background:rgba(255,255,255,0.4); }
 
 /* Quick Grid */
 .quick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px; }
@@ -149,9 +159,26 @@ body { font-family:var(--font); background:#E8E3DD; display:flex; justify-conten
 <div class="scroll-area">
 <div class="page-header"><h1>十里春风</h1><div class="subtitle">海口 · 云龙湖畔康养小镇</div></div>
 <div class="hero">
+<div class="hero-slides" id="heroSlides">
+<div class="hero-slide active"><img src="scf_01_首页.png" alt="首页"></div>
+<div class="hero-slide"><img src="scf_02_空间列表.png" alt="空间列表"></div>
+<div class="hero-slide"><img src="scf_03_空间预约弹窗.png" alt="空间预约"></div>
+<div class="hero-slide"><img src="scf_04_活动列表.png" alt="活动列表"></div>
+<div class="hero-slide"><img src="scf_05_社群列表.png" alt="社群列表"></div>
+<div class="hero-slide"><img src="scf_06_我的.png" alt="我的"></div>
+</div>
 <div class="hero-tag">🌿 康养小镇</div>
 <h2>让50+个空间<br>被人看见·预定·传播</h2>
 <p>7大场景 · 7种预约模式 · 3种权益模型</p>
+<div class="hero-arrows"><button class="hero-arrow" onclick="prevSlide()">◂</button><button class="hero-arrow" onclick="nextSlide()">▸</button></div>
+<div class="hero-dots" id="heroDots">
+<div class="hero-dot active" onclick="goSlide(0)"></div>
+<div class="hero-dot" onclick="goSlide(1)"></div>
+<div class="hero-dot" onclick="goSlide(2)"></div>
+<div class="hero-dot" onclick="goSlide(3)"></div>
+<div class="hero-dot" onclick="goSlide(4)"></div>
+<div class="hero-dot" onclick="goSlide(5)"></div>
+</div>
 </div>
 <div class="quick-grid">
 <div class="quick-item" onclick="switchTab('space')"><div class="quick-icon wellness">🧘</div><span>康养疗愈</span></div>
@@ -286,6 +313,33 @@ body { font-family:var(--font); background:#E8E3DD; display:flex; justify-conten
 <div class="toast" id="toast"></div>
 
 <script>
+// === Banner Carousel ===
+var currentSlide = 0;
+var totalSlides = 6;
+var slideInterval;
+
+function goSlide(n) {
+  document.querySelectorAll('.hero-slide')[currentSlide].classList.remove('active');
+  document.querySelectorAll('.hero-dot')[currentSlide].classList.remove('active');
+  currentSlide = (n + totalSlides) % totalSlides;
+  document.querySelectorAll('.hero-slide')[currentSlide].classList.add('active');
+  document.querySelectorAll('.hero-dot')[currentSlide].classList.add('active');
+}
+function nextSlide() { goSlide(currentSlide + 1); resetTimer(); }
+function prevSlide() { goSlide(currentSlide - 1); resetTimer(); }
+function resetTimer() { clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 3500); }
+
+// Touch swipe
+var touchStartX = 0;
+document.getElementById('heroSlides').addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; });
+document.getElementById('heroSlides').addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 50) { dx > 0 ? prevSlide() : nextSlide(); }
+});
+
+// Start
+slideInterval = setInterval(nextSlide, 3500);
+
 // Tab switching
 function switchTab(name) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
