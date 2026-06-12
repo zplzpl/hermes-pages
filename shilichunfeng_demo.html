@@ -39,12 +39,18 @@ body { font-family:var(--font); background:#E8E3DD; display:flex; justify-conten
 .nav-item.active::after { content:''; position:absolute; bottom:0; width:16px; height:2px; background:var(--gold); border-radius:1px; }
 .nav-item:not(.active) { color:var(--text-secondary); }
 
-/* Hero */
-.hero { margin:0 16px; height:200px; border-radius:var(--radius-lg); overflow:hidden; position:relative; background:linear-gradient(135deg,#3E7B5C 0%,#2D5A42 50%,#1A3A2A 100%); }
-.hero::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.5)); }
+/* Hero Carousel */
+.hero-carousel { margin:0 16px; height:200px; border-radius:var(--radius-lg); overflow:hidden; position:relative; }
+.hero-slides { display:flex; width:100%; height:100%; transition:transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94); }
+.hero-slide { min-width:100%; height:100%; position:relative; flex-shrink:0; }
+.hero-slide img { width:100%; height:100%; object-fit:cover; display:block; }
+.hero-slide::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.5)); pointer-events:none; }
 .hero-tag { position:absolute; top:16px; left:16px; z-index:2; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); padding:4px 12px; border-radius:10px; font-size:11px; color:#fff; }
-.hero h2 { position:absolute; bottom:40px; left:16px; z-index:2; font-size:22px; font-weight:700; color:#fff; letter-spacing:1px; }
-.hero p { position:absolute; bottom:16px; left:16px; z-index:2; font-size:12px; color:rgba(255,255,255,0.8); }
+.hero-slide h2 { position:absolute; bottom:40px; left:16px; z-index:2; font-size:22px; font-weight:700; color:#fff; letter-spacing:1px; }
+.hero-slide p { position:absolute; bottom:16px; left:16px; z-index:2; font-size:12px; color:rgba(255,255,255,0.8); }
+.hero-dots { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
+.hero-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.45); cursor:pointer; transition:all 0.3s; }
+.hero-dot.active { background:#fff; width:18px; border-radius:3px; }
 
 /* Quick Grid */
 .quick-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:16px; }
@@ -148,10 +154,14 @@ body { font-family:var(--font); background:#E8E3DD; display:flex; justify-conten
 <div class="page active" id="page-home">
 <div class="scroll-area">
 <div class="page-header"><h1>十里春风</h1><div class="subtitle">海口 · 云龙湖畔康养小镇</div></div>
-<div class="hero">
-<div class="hero-tag">🌿 康养小镇</div>
-<h2>让50+个空间<br>被人看见·预定·传播</h2>
-<p>7大场景 · 7种预约模式 · 3种权益模型</p>
+<div class="hero-carousel" id="heroCarousel">
+<div class="hero-slides" id="heroSlides">
+<div class="hero-slide"><img src="banner_01.png" alt="康养小镇"><div class="hero-tag">🌿 康养小镇</div><h2>让50+个空间<br>被人看见·预定·传播</h2><p>7大场景 · 7种预约模式 · 3种权益模型</p></div>
+<div class="hero-slide"><img src="banner_02.png" alt="康养小镇"><div class="hero-tag">🌿 康养小镇</div><h2>让50+个空间<br>被人看见·预定·传播</h2><p>7大场景 · 7种预约模式 · 3种权益模型</p></div>
+<div class="hero-slide"><img src="banner_03.png" alt="康养小镇"><div class="hero-tag">🌿 康养小镇</div><h2>让50+个空间<br>被人看见·预定·传播</h2><p>7大场景 · 7种预约模式 · 3种权益模型</p></div>
+<div class="hero-slide"><img src="banner_04.png" alt="康养小镇"><div class="hero-tag">🌿 康养小镇</div><h2>让50+个空间<br>被人看见·预定·传播</h2><p>7大场景 · 7种预约模式 · 3种权益模型</p></div>
+</div>
+<div class="hero-dots" id="heroDots"></div>
 </div>
 <div class="quick-grid">
 <div class="quick-item" onclick="switchTab('space')"><div class="quick-icon wellness">🧘</div><span>康养疗愈</span></div>
@@ -337,6 +347,51 @@ function showToast(msg) {
 
 // Init date
 document.getElementById('bookingDate').valueAsDate = new Date();
+
+// === Hero Carousel ===
+(function(){
+  var slides = document.getElementById('heroSlides');
+  var dotsContainer = document.getElementById('heroDots');
+  var slideEls = slides.querySelectorAll('.hero-slide');
+  var total = slideEls.length;
+  var current = 0;
+  var timer;
+
+  // Build dots
+  for(var i=0; i<total; i++){
+    var dot = document.createElement('div');
+    dot.className = 'hero-dot' + (i===0 ? ' active' : '');
+    dot.setAttribute('data-idx', i);
+    dot.onclick = function(){ goTo(+this.getAttribute('data-idx')); };
+    dotsContainer.appendChild(dot);
+  }
+  var dots = dotsContainer.querySelectorAll('.hero-dot');
+
+  function goTo(idx){
+    current = idx;
+    slides.style.transform = 'translateX(-' + (current*100) + '%)';
+    dots.forEach(function(d,i){ d.classList.toggle('active', i===current); });
+  }
+
+  function next(){
+    goTo((current+1) % total);
+  }
+
+  function startAuto(){ timer = setInterval(next, 4000); }
+  function stopAuto(){ clearInterval(timer); }
+
+  // Touch swipe
+  var touchX = 0;
+  slides.addEventListener('touchstart', function(e){ touchX = e.touches[0].clientX; stopAuto(); });
+  slides.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - touchX;
+    if(dx < -40) goTo((current+1) % total);
+    else if(dx > 40) goTo((current-1+total) % total);
+    startAuto();
+  });
+
+  startAuto();
+})();
 </script>
 </div>
 </body>
